@@ -50,7 +50,7 @@ const VALID_POSITIONS = ['top-right', 'top-left', 'bottom-right', 'bottom-left']
  *
  * @param {string | { left?: number, right?: number, bottom?: number, top?: number }} position
  */
-const parsePositionPropToOffsets = (position) => {
+const parsePositionPropToOffsets = position => {
   if (typeof position === 'object') {
     return position;
   }
@@ -155,7 +155,7 @@ class ControlPanel extends React.Component {
       },
     };
 
-    const setData = (data) => this.setState({ data: { ...this.state.data, ...data } });
+    const setData = data => this.setState({ data: { ...this.state.data, ...data } });
     this.props.contextCb(createPolyProxy(this.state.data, handler, setData));
   }
 
@@ -163,15 +163,15 @@ class ControlPanel extends React.Component {
     return this.props.state ? this.props.state : this.state.data;
   }
 
-  indicateChange(label, newVal) {
+  indicateChange = (label, newVal) => {
     const newState = { ...this.getState(), ...this.state.data, [label]: newVal };
     this.props.onChange(label, newVal, newState);
     if (!this.props.state) {
       this.setState({ data: newState });
     }
-  }
+  };
 
-  handleMouseDown = (evt) => {
+  handleMouseDown = evt => {
     if ((evt.target.className || '').includes('draggable')) {
       this.setState({
         dragging: true,
@@ -181,7 +181,7 @@ class ControlPanel extends React.Component {
     }
   };
 
-  handleMouseDrag = (evt) => {
+  handleMouseDrag = evt => {
     if (this.state.dragging) {
       const diffX = evt.pageX - this.state.mouseDownCoords.x;
       const diffY = evt.pageY - this.state.mouseDownCoords.y;
@@ -250,7 +250,7 @@ class ControlPanel extends React.Component {
           value={{
             state,
             theme,
-            indicateChange: this.indicateChange.bind(this),
+            indicateChange: this.indicateChange,
           }}
         >
           {title ? <Title title={title} /> : null}

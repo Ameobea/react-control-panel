@@ -43,6 +43,14 @@ const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
   )(props);
   // use `steps` if provided
   const processedStep = isnumeric(steps) ? (max - min) / steps : step;
+  const handleChange = React.useCallback(
+    e => {
+      // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
+      // representation before passing it into the state.
+      onChange(scaleValue(parseFloat(e.target.value)));
+    },
+    [scaleValue, onChange]
+  );
 
   return (
     <>
@@ -54,11 +62,7 @@ const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
         min={min}
         max={max}
         step={processedStep}
-        onChange={e => {
-          // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
-          // representation before passing it into the state.
-          onChange(scaleValue(parseFloat(e.target.value)));
-        }}
+        onChange={handleChange}
       />
       <Value text={logVal} width='11%' />
     </>

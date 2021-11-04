@@ -12,13 +12,13 @@ const getOptions = options => {
 };
 
 const Select = ({ options, theme, value, onChange, styles }) => (
-  <React.Fragment>
+  <>
     <span style={styles.traingleUp} />
     <span style={styles.triangleDown} />
     <select value={value} onChange={e => onChange(e.target.value)} style={styles.select}>
       {getOptions(options)}
     </select>
-  </React.Fragment>
+  </>
 );
 
 const mapPropsToStyles = ({ theme }) => {

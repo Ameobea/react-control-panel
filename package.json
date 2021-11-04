@@ -36,12 +36,13 @@
     "is-string": "^1.0.5",
     "prop-types": "^15.7.2",
     "react-css-component": "^1.0.2",
+    "shallow-equal": "=1.2.1",
     "simple-color-picker": "^1.0.2",
     "uuid": "^3.4.0"
   },
   "peerDependencies": {
-    "react": "16.14.0",
-    "react-dom": "16.14.0"
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
@@ -54,8 +55,8 @@
     "eslint": "^7.11.0",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-react": "^7.21.4",
-    "react": "16.14.0",
-    "react-dom": "16.14.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "standard": "^14.3.4",
     "style-loader": "^2.0.0",
     "webpack": "^5.1.3",

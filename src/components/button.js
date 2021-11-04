@@ -31,36 +31,42 @@ const getStyle = (theme, { focused, active, hover }) => {
   };
 };
 
-class UnwrappedButton extends React.Component {
-  state = { focus: false, hover: false, active: false };
+const UnwrappedButton = ({ theme, action, label }) => {
+  const [focused, setFocused] = React.useState(false);
+  const [hover, setHover] = React.useState(false);
+  const [active, setActive] = React.useState(false);
+  const style = React.useMemo(
+    () => getStyle(theme, { focused, active, hover }),
+    [theme, focused, active, hover]
+  );
 
-  render = () => (
+  return (
     <Container>
       <button
-        style={getStyle(this.props.theme, this.state)}
-        onClick={this.props.action}
-        onFocus={() => this.setState({ focus: true })}
-        onBlur={() => this.setState({ focus: false })}
-        onMouseEnter={() => this.setState({ hover: true })}
-        onMouseLeave={() => this.setState({ hover: false })}
+        style={style}
+        onClick={action}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
         onMouseDown={() => {
-          this.setState({ active: true });
-          if (this.props.onmousedown) {
-            this.props.onmousedown();
+          setActive(true);
+          if (onmousedown) {
+            onmousedown();
           }
         }}
         onMouseUp={() => {
-          this.setState({ active: false });
-          if (this.props.onmouseup) {
-            this.props.onmouseup();
+          setActive(false);
+          if (onmouseup) {
+            onmouseup();
           }
         }}
       >
-        {this.props.label}
+        {label}
       </button>
     </Container>
   );
-}
+};
 
 const Button = withTheme(UnwrappedButton);
 Button.propTypes = {

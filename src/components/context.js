@@ -1,15 +1,21 @@
 import React from 'react';
+import { shallowEqualObjects } from 'shallow-equal';
+
+import { useMemoCompare } from '../util';
 
 const ControlPanelContext = React.createContext({});
 export default ControlPanelContext;
 
-export const withTheme = (Comp) => ({ ...props }) => (
-  <ControlPanelContext.Consumer>
-    {({ theme }) => <Comp theme={theme} {...props} />}
-  </ControlPanelContext.Consumer>
-);
+export const withTheme =
+  Comp =>
+  ({ ...props }) =>
+    (
+      <ControlPanelContext.Consumer>
+        {({ theme }) => <Comp theme={theme} {...props} />}
+      </ControlPanelContext.Consumer>
+    );
 
-const getLabelStyles = (theme) => ({
+const getLabelStyles = theme => ({
   body: {
     left: 0,
     width: '36%',
@@ -29,8 +35,8 @@ export const Label = withTheme(({ label, theme }) => {
   const styles = getLabelStyles(theme);
 
   return (
-    <div style={styles.body} className="draggable">
-      <span title={label} className="draggable" style={styles.text}>
+    <div style={styles.body} className='draggable'>
+      <span title={label} className='draggable' style={styles.text}>
         {label}
       </span>
     </div>
@@ -38,48 +44,62 @@ export const Label = withTheme(({ label, theme }) => {
 });
 
 export const Container = ({ label, LabelComponent, children }) => (
-  <div className="container draggable">
+  <div className='container draggable'>
     <Label label={LabelComponent ? <LabelComponent label={label} /> : label || ''} />
     {children}
   </div>
 );
 
-const WithSettingStateWrapper = React.memo(({ renderContainer, label, LabelComponent, children }) =>
-  renderContainer ? (
-    <Container LabelComponent={LabelComponent} label={label}>
-      {children}
-    </Container>
-  ) : (
-    children
-  )
-);
+const WithSettingStateInner = React.memo(
+  ({ state, label, theme, mapPropsToStyles, indicateChange, LabelComponent, Comp, ...props }) => {
+    const onChange = React.useCallback(
+      newVal => indicateChange(label, newVal),
+      [label, indicateChange]
+    );
+    const compProps = {
+      value: state[label],
+      onChange,
+      theme,
+      ...props,
+    };
+    const memoizedCompProps = useMemoCompare(compProps, shallowEqualObjects);
+    const styles = React.useMemo(
+      () => (mapPropsToStyles ? mapPropsToStyles(memoizedCompProps) : undefined),
+      [mapPropsToStyles, memoizedCompProps]
+    );
+    if (mapPropsToStyles) {
+      compProps.styles = styles;
+    }
 
-export const withSettingState = (mapPropsToStyles) => (Comp) => ({
-  label,
-  LabelComponent,
-  ...props
-}) => (
-  <ControlPanelContext.Consumer>
-    {({ state, theme, indicateChange }) => {
-      const compProps = {
-        value: state[label],
-        onChange: (newVal) => indicateChange(label, newVal),
-        theme,
-        ...props,
-      };
-      if (mapPropsToStyles) {
-        compProps.styles = mapPropsToStyles(compProps);
-      }
+    const children = <Comp {...compProps} />;
 
+    const renderContainer = props.renderContainer === false ? false : true;
+    if (renderContainer) {
       return (
-        <WithSettingStateWrapper
-          label={label}
-          LabelComponent={LabelComponent}
-          renderContainer={props.renderContainer === false ? false : true}
-        >
-          <Comp {...compProps} />
-        </WithSettingStateWrapper>
+        <Container LabelComponent={LabelComponent} label={label}>
+          {children}
+        </Container>
       );
-    }}
-  </ControlPanelContext.Consumer>
+    }
+
+    return children;
+  }
 );
+
+export const withSettingState = mapPropsToStyles => Comp =>
+  React.memo(({ label, LabelComponent, ...props }) => (
+    <ControlPanelContext.Consumer>
+      {({ state, theme, indicateChange }) => (
+        <WithSettingStateInner
+          state={state}
+          label={label}
+          theme={theme}
+          mapPropsToStyles={mapPropsToStyles}
+          indicateChange={indicateChange}
+          LabelComponent={LabelComponent}
+          Comp={Comp}
+          {...props}
+        />
+      )}
+    </ControlPanelContext.Consumer>
+  ));

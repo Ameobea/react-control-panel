@@ -33,39 +33,36 @@ const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) =>
   numericOrDefault(value, (min + max) / 2)
 );
 
-export class InnerRange extends React.Component {
-  state = { id: uuid() };
+const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
+  const id = React.useRef(uuid());
+  const css = React.useMemo(() => getDynamicCss(theme, id.current), [theme]);
+  validateStepParams(props.step, steps);
 
-  render() {
-    const { scale, steps, onChange, theme, ...props } = this.props;
-    validateStepParams(props.step, steps);
+  const { min, max, step, logVal, sliderVal, scaleValue } = (
+    scale === 'log' ? getLogDisplayOpts : getNormalDisplayOpts
+  )(props);
+  // use `steps` if provided
+  const processedStep = isnumeric(steps) ? (max - min) / steps : step;
 
-    const { min, max, step, logVal, sliderVal, scaleValue } = (scale === 'log'
-      ? getLogDisplayOpts
-      : getNormalDisplayOpts)(props);
-    // use `steps` if provided
-    const processedStep = isnumeric(steps) ? (max - min) / steps : step;
-
-    return (
-      <React.Fragment>
-        <Style css={getDynamicCss(theme, this.state.id)} />
-        <input
-          className={`control-panel-range-${this.state.id}`}
-          type="range"
-          value={sliderVal}
-          min={min}
-          max={max}
-          step={processedStep}
-          onChange={(e) => {
-            // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
-            // representation before passing it into the state.
-            onChange(scaleValue(parseFloat(e.target.value)));
-          }}
-        />
-        <Value text={logVal} width="11%" />
-      </React.Fragment>
-    );
-  }
-}
+  return (
+    <>
+      <Style css={css} />
+      <input
+        className={`control-panel-range-${id.current}`}
+        type='range'
+        value={sliderVal}
+        min={min}
+        max={max}
+        step={processedStep}
+        onChange={e => {
+          // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
+          // representation before passing it into the state.
+          onChange(scaleValue(parseFloat(e.target.value)));
+        }}
+      />
+      <Value text={logVal} width='11%' />
+    </>
+  );
+};
 
 export default withErrorHandler(withSettingState()(InnerRange));

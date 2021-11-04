@@ -33,7 +33,7 @@ const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) =>
   numericOrDefault(value, (min + max) / 2)
 );
 
-const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
+export const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
   const id = React.useRef(uuid());
   const css = React.useMemo(() => getDynamicCss(theme, id.current), [theme]);
   validateStepParams(props.step, steps);

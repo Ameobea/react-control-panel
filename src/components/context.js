@@ -74,7 +74,7 @@ const WithSettingStateInner = React.memo(
     const children = <Comp {...compProps} />;
 
     const renderContainer = props.renderContainer === false ? false : true;
-    if (renderContainer) {
+    if (renderContainer && typeof label === 'string') {
       return (
         <Container LabelComponent={LabelComponent} label={label}>
           {children}
@@ -87,18 +87,14 @@ const WithSettingStateInner = React.memo(
 );
 
 export const withSettingState = mapPropsToStyles => Comp =>
-  React.memo(({ label, LabelComponent, ...props }) => (
+  React.memo(props => (
     <ControlPanelContext.Consumer>
-      {({ state, theme, indicateChange }) => (
+      {ctxProps => (
         <WithSettingStateInner
-          state={state}
-          label={label}
-          theme={theme}
-          mapPropsToStyles={mapPropsToStyles}
-          indicateChange={indicateChange}
-          LabelComponent={LabelComponent}
+          {...ctxProps}
           Comp={Comp}
           {...props}
+          mapPropsToStyles={mapPropsToStyles}
         />
       )}
     </ControlPanelContext.Consumer>

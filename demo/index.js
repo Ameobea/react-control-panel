@@ -28,7 +28,7 @@ const CustomInput = ({ value, onChange, theme }) => (
           marginLeft: 6,
         }}
         value={value}
-        onChange={(evt) => onChange(evt.target.value)}
+        onChange={evt => onChange(evt.target.value)}
       />
     </div>
   </div>
@@ -57,49 +57,49 @@ const DemoPanel = ({ theme, title, ...props }) => (
   >
     {props.settings ? null : (
       <React.Fragment>
-        <Range label="range slider" min={0} max={100} />
-        <Range label="stepped slider" min={0} max={1} />
-        <Interval label="interval" min={0} max={100} />
-        <Text label="text" />
-        <Checkbox label="checkbox" />
-        <Color label="color rgb" format="rgb" />
-        <Color label="color hex" format="hex" />
-        <Button label="gimme an alert" action={() => alert('clicked')} />
-        <Select label="selection" options={{ 'option 1': 1, 'option 2': 2 }} />
+        <Range label='range slider' min={0} max={100} />
+        <Range label='stepped slider' min={0} max={1} />
+        <Interval label='interval' min={0} max={100} />
+        <Text label='text' />
+        <Checkbox label='checkbox' />
+        <Color label='color rgb' format='rgb' />
+        <Color label='color hex' format='hex' />
+        <Button label='gimme an alert' action={() => alert('clicked')} />
+        <Select label='selection' options={{ 'option 1': 1, 'option 2': 2 }} />
         <Multibox
-          label="multiple checkboxes"
+          label='multiple checkboxes'
           colors={['rgb(100,120,230)', 'rgb(210,100,190)']}
           names={['box1', 'box2']}
           LabelComponent={({ label }) => <span style={{ color: 'red' }}>{label}</span>}
         />
-        <Custom label="custom component" renderContainer={false} Comp={CustomInput} />
+        <Custom label='custom component' renderContainer={false} Comp={CustomInput} />
       </React.Fragment>
     )}
   </ControlPanel>
 );
 
 class App extends React.Component {
-  state = { text: 'val from outer state' };
+  state = { text: 'val from outer state', num: 10, checkbox: true };
 
   render = () => (
     <React.Fragment>
       <DemoPanel
-        theme="light"
-        title="Example Panel 1"
+        theme='light'
+        title='Example Panel 1'
         style={{ marginRight: 11, display: 'inline-block' }}
       />
       <DemoPanel
-        theme="dark"
-        title="Example Panel 2"
+        theme='dark'
+        title='Example Panel 2'
         style={{ display: 'inline-block' }}
         position={{ top: 0, right: 20 }}
         draggable
       />
       <DemoPanel
-        theme="dark"
-        title="Example Panel 3"
+        theme='dark'
+        title='Example Panel 3'
         draggable
-        position="bottom-right"
+        position='bottom-right'
         settings={[
           { type: 'range', label: 'my range', min: 0, max: 100, initial: 20 },
           { type: 'range', label: 'log range', min: 0.1, max: 100, initial: 20, scale: 'log' },
@@ -124,14 +124,16 @@ class App extends React.Component {
         contextCb={console.warn}
       />
       <ControlPanel
-        title="External State"
+        title='External State'
         state={this.state}
         onChange={(key, val) => console.log(this.state, key, val) || this.setState({ [key]: val })}
-        position="bottom-left"
+        position='bottom-left'
         style={{ display: 'inline-block' }}
         draggable
       >
-        <Text label="text" />
+        <Text label='text' />
+        <Range label='num' min={0} max={100} step={10} />
+        <Checkbox label='checkbox' />
       </ControlPanel>
     </React.Fragment>
   );

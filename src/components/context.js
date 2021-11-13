@@ -49,45 +49,53 @@ export const Container = ({ label, LabelComponent, children }) => (
     {children}
   </div>
 );
+const ContainerMemo = React.memo(Container);
 
-const WithSettingStateInner = React.memo(
-  ({ state, label, theme, mapPropsToStyles, indicateChange, LabelComponent, Comp, ...props }) => {
-    const onChange = React.useCallback(
-      newVal => indicateChange(label, newVal),
-      [label, indicateChange]
-    );
-    const compProps = {
-      value: state[label],
-      onChange,
-      theme,
-      ...props,
-    };
-    const memoizedCompProps = useMemoCompare(compProps, shallowEqualObjects);
-    const styles = React.useMemo(
-      () => (mapPropsToStyles ? mapPropsToStyles(memoizedCompProps) : undefined),
-      [mapPropsToStyles, memoizedCompProps]
-    );
-    if (mapPropsToStyles) {
-      compProps.styles = styles;
-    }
-
-    const children = <Comp {...compProps} />;
-
-    const renderContainer = props.renderContainer === false ? false : true;
-    if (renderContainer && typeof label === 'string') {
-      return (
-        <Container LabelComponent={LabelComponent} label={label}>
-          {children}
-        </Container>
-      );
-    }
-
-    return children;
+const WithSettingStateInner = ({
+  state,
+  label,
+  theme,
+  mapPropsToStyles,
+  indicateChange,
+  LabelComponent,
+  Comp,
+  ...props
+}) => {
+  const onChange = React.useCallback(
+    newVal => indicateChange(label, newVal),
+    [label, indicateChange]
+  );
+  const compProps = {
+    value: state[label],
+    onChange,
+    theme,
+    ...props,
+  };
+  const memoizedCompProps = useMemoCompare(compProps, shallowEqualObjects);
+  const styles = React.useMemo(
+    () => (mapPropsToStyles ? mapPropsToStyles(memoizedCompProps) : undefined),
+    [mapPropsToStyles, memoizedCompProps]
+  );
+  if (mapPropsToStyles) {
+    compProps.styles = styles;
   }
-);
 
-export const withSettingState = mapPropsToStyles => Comp =>
-  React.memo(props => (
+  const children = <Comp {...compProps} />;
+
+  const renderContainer = props.renderContainer === false ? false : true;
+  if (renderContainer && typeof label === 'string') {
+    return (
+      <ContainerMemo LabelComponent={LabelComponent} label={label}>
+        {children}
+      </ContainerMemo>
+    );
+  }
+
+  return children;
+};
+
+export const withSettingState = mapPropsToStyles => Comp => {
+  const WithSettingState = props => (
     <ControlPanelContext.Consumer>
       {ctxProps => (
         <WithSettingStateInner
@@ -98,4 +106,7 @@ export const withSettingState = mapPropsToStyles => Comp =>
         />
       )}
     </ControlPanelContext.Consumer>
-  ));
+  );
+
+  return React.memo(WithSettingState);
+};

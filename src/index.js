@@ -91,14 +91,17 @@ class ControlPanel extends React.Component {
     this.lastSettings = settings;
 
     const { derivedSettings, derivedInitialState } = settings.reduce(
-      ({ derivedInitialState, derivedSettings }, { type, label, initial, ...props }) => {
+      ({ derivedInitialState, derivedSettings }, { type, label, ...props }) => {
         const SettingComponent = settingTypeMapping[type];
 
         if (!SettingComponent) {
           return { derivedInitialState, derivedSettings };
         }
         return {
-          derivedInitialState: { ...derivedInitialState, [label]: initial },
+          derivedInitialState:
+            'initial' in props
+              ? { ...derivedInitialState, [label]: props.initial }
+              : derivedInitialState,
           derivedSettings: [...derivedSettings, { SettingComponent, label, props }],
         };
       },
@@ -164,7 +167,7 @@ class ControlPanel extends React.Component {
   }
 
   indicateChange = (label, newVal) => {
-    const newState = { ...this.getState(), ...this.state.data, [label]: newVal };
+    const newState = { ...this.state.data, ...this.getState(), [label]: newVal };
     this.props.onChange(label, newVal, newState);
     if (!this.props.state) {
       this.setState({ data: newState });

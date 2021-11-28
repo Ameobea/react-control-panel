@@ -67,6 +67,18 @@ const parsePositionPropToOffsets = position => {
   };
 };
 
+const maybeSnapToGrid = (pos, snapToGrid) => {
+  if (!snapToGrid || typeof snapToGrid !== 'number') {
+    return pos;
+  }
+
+  const snap = (v, grid) => Math.round(v / grid) * grid;
+  for (const key in pos) {
+    pos[key] = snap(pos[key], snapToGrid);
+  }
+  return pos;
+};
+
 class ControlPanel extends React.Component {
   constructor(props) {
     super(props);
@@ -175,7 +187,7 @@ class ControlPanel extends React.Component {
   };
 
   handleMouseDown = evt => {
-    if ((evt.target.className || '').includes('draggable')) {
+    if ((evt.target.className || '').includes('draggable') && evt.button === 0) {
       this.setState({
         dragging: true,
         mouseDownCoords: { x: evt.pageX, y: evt.pageY },
@@ -209,7 +221,7 @@ class ControlPanel extends React.Component {
         this.props.onDrag(newPosition);
       }
 
-      this.setState({ position: newPosition });
+      this.setState({ position: maybeSnapToGrid(newPosition, this.props.dragSnapPx) });
     }
   };
 

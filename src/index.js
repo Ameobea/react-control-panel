@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import isstring from 'is-string';
 import PropTypes from 'prop-types';
 
@@ -79,6 +79,21 @@ const maybeSnapToGrid = (pos, snapToGrid) => {
   return pos;
 };
 
+const DragHelper = ({ handleMouseDrag, handleMouseUp }) => {
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseDrag);
+
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseDrag);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  return null;
+};
+
 class ControlPanel extends React.Component {
   constructor(props) {
     super(props);
@@ -124,15 +139,6 @@ class ControlPanel extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.draggable) {
-      document.addEventListener('mousemove', this.handleMouseDrag);
-      // `setTimeout` here in order to avoid re-rendering the component and potentially discarding
-      // new data from child settings that were changed as a result of this.
-      document.addEventListener('mouseup', () =>
-        setTimeout(() => this.setState({ dragging: false }))
-      );
-    }
-
     if (!this.props.contextCb) {
       return;
     }
@@ -225,6 +231,16 @@ class ControlPanel extends React.Component {
     }
   };
 
+  handleMouseUp = () => {
+    // `setTimeout` here in order to avoid re-rendering the component and potentially discarding
+    // new data from child settings that were changed as a result of this.
+    setTimeout(() => {
+      if (this.state.dragging) {
+        this.setState({ dragging: false });
+      }
+    });
+  };
+
   render() {
     const {
       width,
@@ -235,6 +251,7 @@ class ControlPanel extends React.Component {
       style,
       settings,
       className,
+      draggable,
     } = this.props;
 
     const theme = isstring(suppliedTheme) ? themes[suppliedTheme] || themes['dark'] : suppliedTheme;
@@ -249,7 +266,7 @@ class ControlPanel extends React.Component {
       position:
         VALID_POSITIONS.includes(position) || typeof position !== 'string' ? 'absolute' : undefined,
       ...(this.state.position || {}),
-      cursor: this.props.draggable ? 'move' : undefined,
+      cursor: draggable ? 'move' : undefined,
       ...style,
     };
 
@@ -258,9 +275,12 @@ class ControlPanel extends React.Component {
     return (
       <div
         className={`control-panel draggable${className ? ' ' + className : ''}`}
-        onMouseDown={this.props.draggable ? this.handleMouseDown : undefined}
+        onMouseDown={draggable ? this.handleMouseDown : undefined}
         style={combinedStyle}
       >
+        {draggable ? (
+          <DragHelper handleMouseDrag={this.handleMouseDrag} handleMouseUp={this.handleMouseUp} />
+        ) : null}
         <ControlPanelContext.Provider
           value={{
             state,

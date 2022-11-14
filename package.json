@@ -8,7 +8,7 @@
     "start": "cp demo/index.html dist/index.html && webpack serve",
     "build": "webpack --config webpack.prod.js",
     "lint": "eslint ./src",
-    "prepublishOnly": "rm dist/* && npm run build"
+    "prepublishOnly": "rm -rf dist/* && npm run build"
   },
   "repository": {
     "type": "git",

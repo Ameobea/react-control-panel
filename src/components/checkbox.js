@@ -1,22 +1,22 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import uuid from 'uuid/v4';
 
 import { withSettingState } from './context';
 
 const Checkbox = ({ theme, value: checked, onChange, styles }) => {
-  const id = uuid();
+  const id = useRef(uuid());
 
   return (
-    <React.Fragment>
+    <>
       <input
-        id={id}
-        type="checkbox"
+        id={id.current}
+        type='checkbox'
         checked={checked}
         style={styles.checkbox}
         onChange={() => onChange(!checked)}
       />
-      <label htmlFor={id} style={styles.label} />
-    </React.Fragment>
+      <label htmlFor={id.current} style={styles.label} />
+    </>
   );
 };
 

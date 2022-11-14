@@ -1,7 +1,7 @@
 import React from 'react';
 import { ClientStyle as Style } from 'react-css-component';
 import isnumeric from 'is-numeric';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 import { withSettingState } from './context';
 import Value from './value';

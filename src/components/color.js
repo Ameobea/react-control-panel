@@ -12,7 +12,7 @@ const arrayToRgb = arr => {
 const colorFormatters = {
   rgb: colorPicker => {
     const { r, g, b } = colorPicker.getRGB();
-    return `rgb(${r}, ${g}, ${b})`;
+    return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
   },
   hex: colorPicker => colorPicker.getHexString(),
   array: colorPicker => {
@@ -21,11 +21,31 @@ const colorFormatters = {
   },
 };
 
+// Normalizes all input color strings to hex number
+const colorParsers = {
+  rgb: color => {
+    const [r, g, b] = color
+      .replace('rgb(', '')
+      .replace(' ', '')
+      .replace(')', '')
+      .split(',')
+      .map(x => parseInt(x, 10));
+    return (r << 16) + (g << 8) + b;
+  },
+  hex: color => parseInt(color.replace('#', ''), 16),
+  array: color => {
+    const [r, g, b] = color.map(x => Math.round(x * 255));
+    return (r << 16) + (g << 8) + b;
+  },
+};
+
 class Color extends React.Component {
   colorpickerContainer = React.createRef();
   state = { colorHovered: false, pickerHovered: false };
 
-  formatColor = color => colorFormatters[this.props.format](this.picker);
+  lastColor = null;
+
+  formatColor = () => colorFormatters[this.props.format](this.picker);
 
   componentDidMount() {
     this.picker = new SimpleColorPicker({
@@ -36,17 +56,20 @@ class Color extends React.Component {
       height: 100,
     });
 
-    this.picker.onChange(newColor => {
-      const formattedNewColor = this.formatColor(newColor);
+    this.picker.onChange(() => {
+      const formattedNewColor = this.formatColor();
       if (formattedNewColor !== this.props.value) {
+        this.lastColor = formattedNewColor;
         this.props.onChange(formattedNewColor);
       }
     });
   }
 
   componentDidUpdate() {
-    if (this.picker) {
-      this.picker.setColor(this.props.value);
+    if (this.picker && this.props.value !== this.lastColor) {
+      console.log('parsing');
+      const parsedColor = colorParsers[this.props.format](this.props.value);
+      this.picker.setColor(parsedColor);
     }
   }
 
@@ -90,7 +113,7 @@ class Color extends React.Component {
           onMouseEnter={() => this.setState({ pickerHovered: true })}
           onMouseLeave={() => this.setState({ pickerHovered: false })}
         />
-        <Value text={this.props.value} width="46%" />
+        <Value text={this.props.value} width='46%' />
       </React.Fragment>
     );
   };

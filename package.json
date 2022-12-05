@@ -1,6 +1,6 @@
 {
   "name": "react-control-panel",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "react-compatible, embeddable panel of inputs for parameter settings",
   "main": "dist/index.js",
   "module": "./dist/index.js",

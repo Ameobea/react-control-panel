@@ -11,15 +11,29 @@ const getOptions = options => {
   ));
 };
 
-const Select = ({ options, theme, value, onChange, styles }) => (
-  <>
-    <span style={styles.traingleUp} />
-    <span style={styles.triangleDown} />
-    <select value={value} onChange={e => onChange(e.target.value)} style={styles.select}>
-      {getOptions(options)}
-    </select>
-  </>
-);
+const Select = ({ options, theme, value, onChange, styles }) => {
+  const selectRef = React.useRef(null);
+  // Blur the select when the value changes to prevent keypresses from being
+  // interpreted as changing the value.
+  React.useEffect(() => {
+    selectRef.current.blur();
+  }, [value]);
+
+  return (
+    <>
+      <span style={styles.traingleUp} />
+      <span style={styles.triangleDown} />
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={styles.select}
+        ref={selectRef}
+      >
+        {getOptions(options)}
+      </select>
+    </>
+  );
+};
 
 const mapPropsToStyles = ({ theme }) => {
   const triangle = {

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo, useCallback, useRef, useState } from 'react';
 import { ClientStyle as Style } from 'react-css-component';
 import isnumeric from 'is-numeric';
 import { v4 as uuid } from 'uuid';
 
 import { withSettingState } from './context';
 import Value from './value';
+import { EditableValue } from './EditableValue';
 import getDynamicCss from './styles/range';
 import { withErrorHandler, throwLogRangeError, validateStepParams } from '../error';
 import {
@@ -15,7 +16,7 @@ import {
 } from '../util';
 
 const getLogDisplayOpts = withScalerFunctions(
-  ({ min, max, step, value, scaleValue, scaleValueInverse }) => {
+  ({ min, max, value, scaleValue, scaleValueInverse }) => {
     // `value` is the logarithmic value that the user cares about.  We convert it into a value
     // from 1 to 100 in order to pass it to the slider.
     const sliderVal = scaleValueInverse(
@@ -34,16 +35,17 @@ const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) =>
 );
 
 export const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
-  const id = React.useRef(uuid());
-  const css = React.useMemo(() => getDynamicCss(theme, id.current), [theme]);
+  const id = useRef(uuid());
+  const css = useMemo(() => getDynamicCss(theme, id.current), [theme]);
   validateStepParams(props.step, steps);
+  const [isEditing, setIsEditing] = useState(null);
 
   const { min, max, step, logVal, sliderVal, scaleValue } = (
     scale === 'log' ? getLogDisplayOpts : getNormalDisplayOpts
   )(props);
   // use `steps` if provided
   const processedStep = isnumeric(steps) ? (max - min) / steps : step;
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     e => {
       // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
       // representation before passing it into the state.
@@ -64,7 +66,25 @@ export const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
         step={processedStep}
         onChange={handleChange}
       />
-      <Value text={logVal} width='11%' />
+      {isEditing ? (
+        <EditableValue
+          initialValue={props.value}
+          onSubmit={newValue => {
+            const parsedValue = parseFloat(newValue);
+            if (isNaN(parsedValue)) {
+              setIsEditing(false);
+              return;
+            }
+
+            onChange(parsedValue);
+            setIsEditing(false);
+          }}
+          theme={theme}
+          width='11%'
+        />
+      ) : (
+        <Value text={logVal} width='11%' onDoubleClick={() => setIsEditing(true)} />
+      )}
     </>
   );
 };

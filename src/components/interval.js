@@ -11,6 +11,7 @@ import {
   clamp,
 } from '../util';
 import Value from './value';
+import { EditableValue } from './EditableValue';
 import './styles/interval.css';
 
 const getLogDisplayOpts = withScalerFunctions(
@@ -44,7 +45,15 @@ const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) => 
 
 class Range extends React.Component {
   input = React.createRef();
-  state = { activeIndex: -1, value: null, min: null, max: null, step: null };
+  state = {
+    activeIndex: -1,
+    value: null,
+    min: null,
+    max: null,
+    step: null,
+    isEditingLeft: false,
+    isEditingRight: false,
+  };
 
   /**
    * Gets mouse position in page coords relative to the container
@@ -53,30 +62,22 @@ class Range extends React.Component {
 
   calculateFraction = (evt, value, min, max) => ({
     fraction: clamp(this.mouseX(evt) / this.input.current.offsetWidth, 0, 1),
-    lofrac: (value[0] - min) / (max - min),
-    hifrac: (value[1] - min) / (max - min),
+    lofrac: (clamp(value[0], min, max) - min) / (max - min),
+    hifrac: (clamp(value[1], min, max) - min) / (max - min),
   });
 
-  setActiveValue = evt => {
-    if (this.state.activeIndex === -1) {
+  setValue = (oldValue, newValue, activeIndex, clampToExtremes) => {
+    if (activeIndex === -1) {
       return;
     }
 
-    const { value, min, max, step, scaleValue } = this.computedScaleInfo;
-    const { fraction, hifrac, lofrac } = this.calculateFraction(evt, value, min, max);
-
-    // Clip against the other bound:
-    const clippedFraction =
-      this.state.activeIndex === 0 ? Math.min(hifrac, fraction) : Math.max(lofrac, fraction);
-
-    // Compute and quantize the new value:
-    var newValue = scaleValue(min + Math.round(((max - min) * clippedFraction) / step) * step);
-
     // Make sure it doesn't overrun the slider or pass the other side
     const clampTo =
-      this.state.activeIndex === 0 ? [this.props.min, value[1]] : [value[0], this.props.max];
-    value[this.state.activeIndex] = clamp(newValue, clampTo[0], clampTo[1]);
-    this.props.onChange(value);
+      activeIndex === 0
+        ? [clampToExtremes ? this.props.min : -Infinity, oldValue[1]]
+        : [oldValue[0], clampToExtremes ? this.props.max : Infinity];
+    oldValue[activeIndex] = clamp(newValue, clampTo[0], clampTo[1]);
+    this.props.onChange(oldValue);
   };
 
   componentDidMount() {
@@ -84,7 +85,19 @@ class Range extends React.Component {
       if (!this.state.dragging) {
         return;
       }
-      this.setActiveValue(evt);
+
+      const { value, min, max, step, scaleValue } = this.computedScaleInfo;
+      const { fraction, hifrac, lofrac } = this.calculateFraction(evt, value, min, max);
+
+      // Clip against the other bound:
+      const clippedFraction =
+        this.state.activeIndex === 0 ? Math.min(hifrac, fraction) : Math.max(lofrac, fraction);
+
+      // Compute and quantize the new value:
+      const newValue = scaleValue(min + Math.round(((max - min) * clippedFraction) / step) * step);
+
+      this.setValue(value, newValue, this.state.activeIndex, true);
+
       fn && fn();
     };
 
@@ -96,12 +109,16 @@ class Range extends React.Component {
     );
   }
 
+  setIsEditingLeft = isEditingLeft => this.setState({ isEditingLeft });
+
+  setIsEditingRight = isEditingRight => this.setState({ isEditingRight });
+
   render() {
     const { scale, steps, theme, ...props } = this.props;
 
-    const { min, max, step, sliderVal, logVal, scaleValue } = (scale === 'log'
-      ? getLogDisplayOpts
-      : getNormalDisplayOpts)(props);
+    const { min, max, step, sliderVal, logVal, scaleValue } = (
+      scale === 'log' ? getLogDisplayOpts : getNormalDisplayOpts
+    )(props);
     validateStepParams(props.step, steps);
 
     // These values need to be available for the global mouse event listeners, so we set them
@@ -115,9 +132,9 @@ class Range extends React.Component {
     };
 
     return (
-      <React.Fragment>
+      <>
         <span
-          className="control-panel-interval"
+          className='control-panel-interval'
           style={{ backgroundColor: theme.background2 }}
           ref={this.input}
           onMouseDown={evt => {
@@ -136,17 +153,66 @@ class Range extends React.Component {
           }}
         >
           <span
-            className="control-panel-interval-handle"
+            className='control-panel-interval-handle'
             style={{
-              left: ((sliderVal[0] - min) / (max - min)) * 100 + '%',
-              right: 100 - ((sliderVal[1] - min) / (max - min)) * 100 + '%',
+              left: clamp(((sliderVal[0] - min) / (max - min)) * 100, 0, 100) + '%',
+              right: clamp(100 - ((sliderVal[1] - min) / (max - min)) * 100, 0, 100) + '%',
               backgroundColor: theme.foreground1,
             }}
           />
         </span>
-        <Value text={logVal[0]} width="11%" left={true} />
-        <Value text={logVal[1]} width="11%" />
-      </React.Fragment>
+        {this.state.isEditingLeft ? (
+          <EditableValue
+            left={true}
+            initialValue={logVal[0]}
+            onSubmit={newValue => {
+              let parsedValue = parseFloat(newValue);
+              if (isNaN(parsedValue)) {
+                this.setIsEditingLeft(false);
+                return;
+              }
+
+              const oldValue = this.computedScaleInfo.value;
+              parsedValue = Math.min(parsedValue, oldValue[1]);
+
+              this.setValue(oldValue, parsedValue, 0, false);
+              this.setIsEditingLeft(false);
+            }}
+            theme={theme}
+            width='11%'
+          />
+        ) : (
+          <Value
+            text={logVal[0]}
+            width='11%'
+            left={true}
+            onDoubleClick={() => this.setIsEditingLeft(true)}
+          />
+        )}
+
+        {this.state.isEditingRight ? (
+          <EditableValue
+            initialValue={logVal[1]}
+            onSubmit={newValue => {
+              let parsedValue = parseFloat(newValue);
+              if (isNaN(parsedValue)) {
+                this.setIsEditingRight(false);
+                return;
+              }
+
+              const oldValue = this.computedScaleInfo.value;
+              parsedValue = Math.max(parsedValue, oldValue[0]);
+
+              this.setValue(oldValue, parsedValue, 1, false);
+              this.setIsEditingRight(false);
+            }}
+            theme={theme}
+            width='11%'
+          />
+        ) : (
+          <Value text={logVal[1]} width='11%' onDoubleClick={() => this.setIsEditingRight(true)} />
+        )}
+      </>
     );
   }
 }

@@ -101,7 +101,7 @@ class Color extends React.Component {
     const styles = this.getStyles();
 
     return (
-      <React.Fragment>
+      <>
         <span
           style={styles.colorDisplay}
           onMouseEnter={() => this.setState({ colorHovered: true })}
@@ -114,7 +114,7 @@ class Color extends React.Component {
           onMouseLeave={() => this.setState({ pickerHovered: false })}
         />
         <Value text={this.props.value} width='46%' />
-      </React.Fragment>
+      </>
     );
   };
 }

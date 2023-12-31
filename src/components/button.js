@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { withTheme, Container } from './context';
 
-const getStyle = (theme, { focused, active, hover }) => {
+const getStyle = (theme, { focused, active, hover, disabled }) => {
   const hoverStyle = {
     color: theme.text2,
     backgroundColor: theme.background2hover,
@@ -12,6 +12,11 @@ const getStyle = (theme, { focused, active, hover }) => {
   const activeStyle = {
     color: theme.background2,
     backgroundColor: theme.text2,
+  };
+
+  const disabledStyle = {
+    filter: 'contrast(0.5)',
+    cursor: 'default',
   };
 
   return {
@@ -28,16 +33,17 @@ const getStyle = (theme, { focused, active, hover }) => {
     outline: focused ? 'none' : undefined,
     ...(hover ? hoverStyle : {}),
     ...(active ? activeStyle : {}),
+    ...(disabled ? disabledStyle : {}),
   };
 };
 
-const UnwrappedButton = ({ theme, action, label }) => {
+const UnwrappedButton = ({ theme, action, label, disabled }) => {
   const [focused, setFocused] = React.useState(false);
   const [hover, setHover] = React.useState(false);
   const [active, setActive] = React.useState(false);
   const style = React.useMemo(
-    () => getStyle(theme, { focused, active, hover }),
-    [theme, focused, active, hover]
+    () => getStyle(theme, { focused, active, hover, disabled }),
+    [theme, focused, active, hover, disabled]
   );
 
   return (
@@ -45,6 +51,7 @@ const UnwrappedButton = ({ theme, action, label }) => {
       <button
         style={style}
         onClick={action}
+        disabled={disabled}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onMouseEnter={() => setHover(true)}
@@ -71,6 +78,7 @@ const UnwrappedButton = ({ theme, action, label }) => {
 const Button = withTheme(UnwrappedButton);
 Button.propTypes = {
   action: PropTypes.func,
+  disabled: PropTypes.bool,
   onmousedown: PropTypes.func,
   onmouseup: PropTypes.func,
   label: PropTypes.string.isRequired,

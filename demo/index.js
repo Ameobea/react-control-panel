@@ -56,7 +56,7 @@ const DemoPanel = ({ theme, title, ...props }) => (
     {...props}
   >
     {props.settings ? null : (
-      <React.Fragment>
+      <>
         <Range label='range slider' min={0} max={100} />
         <Range label='stepped slider' min={0} max={1} />
         <Interval label='interval' min={0} max={100} />
@@ -65,6 +65,7 @@ const DemoPanel = ({ theme, title, ...props }) => (
         <Color label='color rgb' format='rgb' />
         <Color label='color hex' format='hex' />
         <Button label='gimme an alert' action={() => alert('clicked')} />
+        <Button label='disabled button' disabled />
         <Select label='selection' options={{ 'option 1': 1, 'option 2': 2 }} />
         <Multibox
           label='multiple checkboxes'
@@ -73,7 +74,7 @@ const DemoPanel = ({ theme, title, ...props }) => (
           LabelComponent={({ label }) => <span style={{ color: 'red' }}>{label}</span>}
         />
         <Custom label='custom component' renderContainer={false} Comp={CustomInput} />
-      </React.Fragment>
+      </>
     )}
   </ControlPanel>
 );
@@ -82,7 +83,7 @@ class App extends React.Component {
   state = { text: 'val from outer state', num: 10, checkbox: true };
 
   render = () => (
-    <React.Fragment>
+    <>
       <DemoPanel
         theme='light'
         title='Example Panel 1'
@@ -106,6 +107,12 @@ class App extends React.Component {
           { type: 'text', label: 'my text', initial: 'my cool setting' },
           { type: 'checkbox', label: 'my checkbox', initial: true },
           { type: 'color', label: 'my color', format: 'rgb', initial: 'rgb(10,200,0)' },
+          {
+            type: 'button',
+            label: 'disabled button',
+            disabled: true,
+            action: () => alert('this should never happen!'),
+          },
           {
             type: 'button',
             label: 'gimme an alert',
@@ -135,7 +142,7 @@ class App extends React.Component {
         <Range label='num' min={0} max={100} step={10} />
         <Checkbox label='checkbox' />
       </ControlPanel>
-    </React.Fragment>
+    </>
   );
 }
 

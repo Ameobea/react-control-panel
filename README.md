@@ -70,24 +70,24 @@ const initialState = {
 
 const DemoPanel = () => (
   <ControlPanel
-    theme="dark"
-    title="Demo Panel"
+    theme='dark'
+    title='Demo Panel'
     initialState={initialState}
     onChange={console.log}
     width={500}
     style={{ marginRight: 30 }}
   >
-    <Range label="range slider" min={0} max={100} />
-    <Range label="stepped slider" min={0} max={1} />
-    <Interval label="interval" min={0} max={100} />
-    <Text label="text" />
-    <Checkbox label="checkbox" />
-    <Color label="color rgb" format="rgb" />
-    <Color label="color hex" format="hex" />
-    <Button label="gimme an alert" action={() => alert('clicked')} />
-    <Select label="selection" options={{ 'option 1': 1, 'option 2': 2 }} />
+    <Range label='range slider' min={0} max={100} />
+    <Range label='stepped slider' min={0} max={1} />
+    <Interval label='interval' min={0} max={100} />
+    <Text label='text' />
+    <Checkbox label='checkbox' />
+    <Color label='color rgb' format='rgb' />
+    <Color label='color hex' format='hex' />
+    <Button label='gimme an alert' action={() => alert('clicked')} disabled={false} />
+    <Select label='selection' options={{ 'option 1': 1, 'option 2': 2 }} />
     <Multibox
-      label="multiple checkboxes"
+      label='multiple checkboxes'
       colors={['rgb(100,120,230)', 'rgb(210,100,190)']}
       names={['box1', 'box2']}
     />
@@ -106,9 +106,9 @@ It's also possible to use the old array-based definition system from the origina
 
 ```javascript
 <DemoPanel
-  theme="dark"
-  title="Array-Declared Control Panel"
-  position="bottom-right"
+  theme='dark'
+  title='Array-Declared Control Panel'
+  position='bottom-right'
   settings={[
     { type: 'range', label: 'my range', min: 0, max: 100, initial: 20 },
     { type: 'range', label: 'log range', min: 0.1, max: 100, initial: 20, scale: 'log' },
@@ -123,6 +123,7 @@ It's also possible to use the old array-based definition system from the origina
       },
       onmousedown: () => console.log('button pressed'),
       onmouseup: () => console.log('button released'),
+      disabled: true,
     },
     {
       type: 'select',
@@ -157,7 +158,7 @@ Some setting components have additional properties:
 
 - Inputs of type `range` can specify a `min`, `max`, and `step` (or integer `steps`). Scale can be either `'linear'` (default) or `'log'`. If a log scale, the sign of `min`, `max`, and `initial` must be the same and only `steps` is permitted (since the step size is not constant on a log scale).
 - Inputs of type `color` can specify a `format` as either `rgb` • `hex` • `array`
-- Inputs of type `button` can specify `action` (onclick), `onmousedown`, and `onmouseup` callbacks. Button inputs are not reflected in the state and do not trigger an `'input'` event.
+- Inputs of type `button` can specify `action` (onclick), a `disabled` flag, `onmousedown`, and `onmouseup` callbacks. Button inputs are not reflected in the state and do not trigger an `'input'` event.
 - Inputs of type `interval` obey the same semantics as `range` inputs, except the input and output is a two-element array corresponding to the low/high bounds, e.g. `initial: [1, 7.5]`.
 - Inputs of type `select` can specify a list of options, either as an `Array` (in which case the value is the same as the option text) or as an object containing key/value pairs (in which case the key/value pair maps to value value/label pairs).
 - Inputs of type `multibox` can specify a number of checkboxes, either by providing a `count` or a list of `names` from which the number will be inferred, in which case the color of each box and a text name can also be provided as lists `colors` and `names`
@@ -201,7 +202,7 @@ Please note that panel context will not work if you use external state.
 As mentioned above, it's possible to pass a callback to the `ControlPanel` component which will be supplied with a special context object after the component has mounted. This allows the underlying state to be directly viewed and manipulated from other parts of the application while still being reflected dynamically in the UI. Here's an example:
 
 ```javascript
-const handleContext = (ctx) => {
+const handleContext = ctx => {
   console.log(ctx['label']); // prints the stored value for that setting
   ctx['my range'] = 10; // this sets the value of the 'my range' setting to 10 in the panel
   ctx['multibox'][1] = false; // this doesn't work; you can only set top-level setting values

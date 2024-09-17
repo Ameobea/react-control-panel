@@ -186,7 +186,7 @@ class ControlPanel extends React.Component {
 
   indicateChange = (label, newVal) => {
     const newState = { ...this.state.data, ...this.getState(), [label]: newVal };
-    this.props.onChange(label, newVal, newState);
+    this.props.onChange?.(label, newVal, newState);
     if (!this.props.state) {
       this.setState({ data: newState });
     }
@@ -243,12 +243,12 @@ class ControlPanel extends React.Component {
 
   render() {
     const {
-      width,
-      theme: suppliedTheme,
+      width = 300,
+      theme: suppliedTheme = 'dark',
       position = '',
       title,
       children,
-      style,
+      style = {},
       settings,
       className,
       draggable,
@@ -317,14 +317,6 @@ ControlPanel.propTypes = {
   draggable: PropTypes.bool,
   onDrag: PropTypes.func,
   className: PropTypes.string,
-};
-
-ControlPanel.defaultProps = {
-  width: 300,
-  theme: 'dark',
-  onChange: () => {},
-  style: {},
-  className: null,
 };
 
 export default ControlPanel;

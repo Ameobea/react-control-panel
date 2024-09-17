@@ -1,5 +1,3 @@
-const path = require('path');
-
 const config = require('./webpack.config');
 
 module.exports = {
@@ -22,10 +20,9 @@ module.exports = {
     },
   ],
   output: {
-    filename: './dist/index.js',
     library: 'react-control-panel',
     libraryTarget: 'umd',
-    path: path.resolve(__dirname),
+    path: __dirname + '/dist',
   },
   mode: 'production',
   optimization: {

@@ -228,11 +228,9 @@ Then, open [localhost:9000](http://locahost:9000/) in your web browser. The page
 
 ### building the demo for publishing
 
-1. Change `demo.js` to `index.js` in `demo/index.html`
-1. Run `cp demo/index.html dist/index.html`
-1. Comment out the `externals` in `webpack.prod.js`
-1. Run `yarn build demo`
-1. The demo application will be built into `dist`
+Run `yarn buildDemo`
+
+The demo application will be built into `dist`
 
 #### see also
 

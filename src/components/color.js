@@ -67,7 +67,6 @@ class Color extends React.Component {
 
   componentDidUpdate() {
     if (this.picker && this.props.value !== this.lastColor) {
-      console.log('parsing');
       const parsedColor = colorParsers[this.props.format](this.props.value);
       this.picker.setColor(parsedColor);
     }

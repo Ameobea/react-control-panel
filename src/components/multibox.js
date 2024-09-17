@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { withSettingState } from './context';
 
-const UnwrappedMultibox = ({ theme, colors, names, count, value, onChange, styles }) => {
+const UnwrappedMultibox = ({ names = [], count = 2, value, onChange, styles }) => {
   const HydratedCheckbox = (checked, i) => (
     <React.Fragment key={i}>
       <span
@@ -14,7 +14,7 @@ const UnwrappedMultibox = ({ theme, colors, names, count, value, onChange, style
           onChange(value);
         }}
       />
-      <input type="checkbox" defaultChecked={checked} style={styles.checkbox} />
+      <input type='checkbox' defaultChecked={checked} style={styles.checkbox} />
       {names[i] ? <span style={styles.label}>{names[i]}</span> : null}
     </React.Fragment>
   );
@@ -28,7 +28,7 @@ const UnwrappedMultibox = ({ theme, colors, names, count, value, onChange, style
   );
 };
 
-const mapPropsToStyles = ({ theme, colors }) => ({
+const mapPropsToStyles = ({ theme, colors = [] }) => ({
   main: {
     position: 'relative',
     width: '60%',
@@ -79,12 +79,6 @@ Multibox.propTypes = {
   colors: PropTypes.array,
   names: PropTypes.arrayOf(PropTypes.string),
   count: PropTypes.number,
-};
-
-Multibox.defaultProps = {
-  colors: [],
-  names: [],
-  count: 2,
 };
 
 export default Multibox;

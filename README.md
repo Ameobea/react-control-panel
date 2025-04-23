@@ -1,7 +1,6 @@
 # control-panel
 
-[![NPM version][npm-image]][npm-url]
-![experimental][experimental-image]
+![NPM Version](https://img.shields.io/npm/v/react-control-panel)
 
 This is a React port of [`control-panel`](https://github.com/freeman-lab/control-panel) that aims to replicate the functionality of the original exactly while making it easily usable from React. All of the features of the original have been brought over, and the API remains very similar.
 
@@ -30,7 +29,7 @@ Want to contribute a new theme or input type? Submit a PR!
 Add to your project with
 
 ```
-npm install control-panel
+npm install react-control-panel
 ```
 
 The UI uses the Hack font which users may not have installed on their machines locally. To include a version dynamically, add the following line to your `<head>`:

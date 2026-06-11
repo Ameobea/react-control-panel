@@ -8,5 +8,19 @@
     ],
     "@babel/react"
   ],
-  "plugins": ["@babel/plugin-proposal-class-properties"]
+  "plugins": ["@babel/plugin-proposal-class-properties"],
+  "env": {
+    "esm": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "useBuiltIns": "entry",
+            "modules": false
+          }
+        ],
+        "@babel/react"
+      ]
+    }
+  }
 }

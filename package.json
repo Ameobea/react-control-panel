@@ -1,15 +1,16 @@
 {
   "name": "react-control-panel",
-  "version": "0.12.5",
+  "version": "0.13.0",
   "description": "react-compatible, embeddable panel of inputs for parameter settings",
   "main": "dist/index.js",
-  "module": "./dist/index.js",
+  "module": "./dist/esm/index.js",
   "scripts": {
     "start": "cp demo/index.html dist/index.html && webpack serve",
-    "build": "rm -rf dist/* && touch dist/.gitignore && webpack --config webpack.prod.js",
+    "build": "rm -rf dist/* && touch dist/.gitignore && webpack --config webpack.prod.js && yarn build:esm",
     "buildDemo": "rm -rf dist/* && touch dist/.gitignore && webpack --config webpack.demo.js && cp demo/index.html dist/index.html",
     "lint": "eslint ./src",
-    "prepublishOnly": "rm -rf dist/* && touch dist/.gitignore && npm run build"
+    "prepublishOnly": "rm -rf dist/* && touch dist/.gitignore && npm run build",
+    "build:esm": "BABEL_ENV=esm babel src --out-dir dist/esm --copy-files --no-copy-ignored"
   },
   "repository": {
     "type": "git",
@@ -46,6 +47,7 @@
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.29.7",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/plugin-proposal-class-properties": "^7.18.6",

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import isstring from 'is-string';
-import PropTypes from 'prop-types';
+import { shallowEqualObjects } from 'shallow-equal';
 
 import themes from './themes';
 import Title from './components/title';
@@ -14,7 +13,6 @@ import Color from './components/color';
 import Range from './components/range';
 import Interval from './components/interval';
 import Custom from './components/custom';
-import { createPolyProxy } from './util';
 import './components/styles/base.css';
 import './components/styles/color.css';
 
@@ -82,14 +80,13 @@ const maybeSnapToGrid = (pos, snapToGrid) => {
 const DragHelper = ({ handleMouseDrag, handleMouseUp }) => {
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseDrag);
-
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseDrag);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [handleMouseDrag, handleMouseUp]);
 
   return null;
 };
@@ -106,8 +103,10 @@ class ControlPanel extends React.Component {
       return;
     }
 
+    // Per-setting `initial` values act as defaults; an explicitly-passed
+    // `initialState` wins over them.
     const { derivedInitialState } = this.computeDerivedSettings(this.props.settings);
-    this.state.data = { ...this.state.data, ...derivedInitialState };
+    this.state.data = { ...derivedInitialState, ...this.state.data };
   }
 
   lastSettings = null;
@@ -117,23 +116,19 @@ class ControlPanel extends React.Component {
     }
     this.lastSettings = settings;
 
-    const { derivedSettings, derivedInitialState } = settings.reduce(
-      ({ derivedInitialState, derivedSettings }, { type, label, ...props }) => {
-        const SettingComponent = settingTypeMapping[type];
+    const derivedSettings = [];
+    const derivedInitialState = {};
+    for (const { type, label, ...props } of settings) {
+      const SettingComponent = settingTypeMapping[type];
+      if (!SettingComponent) {
+        continue;
+      }
 
-        if (!SettingComponent) {
-          return { derivedInitialState, derivedSettings };
-        }
-        return {
-          derivedInitialState:
-            'initial' in props
-              ? { ...derivedInitialState, [label]: props.initial }
-              : derivedInitialState,
-          derivedSettings: [...derivedSettings, { SettingComponent, label, props }],
-        };
-      },
-      { derivedInitialState: {}, derivedSettings: [] }
-    );
+      if ('initial' in props) {
+        derivedInitialState[label] = props.initial;
+      }
+      derivedSettings.push({ SettingComponent, label, props });
+    }
     this.derivedSettings = derivedSettings;
     return { derivedSettings, derivedInitialState };
   }
@@ -176,8 +171,7 @@ class ControlPanel extends React.Component {
       },
     };
 
-    const setData = data => this.setState({ data: { ...this.state.data, ...data } });
-    this.props.contextCb(createPolyProxy(this.state.data, handler, setData));
+    this.props.contextCb(new Proxy(this.state.data, handler));
   }
 
   getState() {
@@ -192,8 +186,25 @@ class ControlPanel extends React.Component {
     }
   };
 
+  // Context value identity is preserved across renders that don't change the settings state or
+  // theme, so panel-level re-renders (dragging in particular) don't re-render every setting.
+  getContextValue(state, theme) {
+    const cached = this.cachedContextValue;
+    if (
+      cached &&
+      cached.state === state &&
+      (cached.theme === theme || shallowEqualObjects(cached.theme, theme))
+    ) {
+      return cached;
+    }
+
+    this.cachedContextValue = { state, theme, indicateChange: this.indicateChange };
+    return this.cachedContextValue;
+  }
+
   handleMouseDown = evt => {
-    if ((evt.target.className || '').includes('draggable') && evt.button === 0) {
+    const className = typeof evt.target.className === 'string' ? evt.target.className : '';
+    if (className.includes('draggable') && evt.button === 0) {
       this.setState({
         dragging: true,
         mouseDownCoords: { x: evt.pageX, y: evt.pageY },
@@ -254,7 +265,8 @@ class ControlPanel extends React.Component {
       draggable,
     } = this.props;
 
-    const theme = isstring(suppliedTheme) ? themes[suppliedTheme] || themes['dark'] : suppliedTheme;
+    const theme =
+      typeof suppliedTheme === 'string' ? themes[suppliedTheme] || themes['dark'] : suppliedTheme;
     const state = this.getState();
     const combinedStyle = {
       display: 'inline-block',
@@ -274,20 +286,14 @@ class ControlPanel extends React.Component {
 
     return (
       <div
-        className={`control-panel draggable${className ? ' ' + className : ''}`}
+        className={`control-panel control-panel-draggable${className ? ' ' + className : ''}`}
         onMouseDown={draggable ? this.handleMouseDown : undefined}
         style={combinedStyle}
       >
         {draggable ? (
           <DragHelper handleMouseDrag={this.handleMouseDrag} handleMouseUp={this.handleMouseUp} />
         ) : null}
-        <ControlPanelContext.Provider
-          value={{
-            state,
-            theme,
-            indicateChange: this.indicateChange,
-          }}
-        >
+        <ControlPanelContext.Provider value={this.getContextValue(state, theme)}>
           {title ? <Title title={title} /> : null}
           {children}
           {derivedSettings.map(({ SettingComponent, label, props }) => (
@@ -298,25 +304,5 @@ class ControlPanel extends React.Component {
     );
   }
 }
-
-ControlPanel.propTypes = {
-  initialState: PropTypes.object,
-  onChange: PropTypes.func,
-  theme: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  title: PropTypes.string,
-  width: PropTypes.number,
-  position: PropTypes.oneOfType([
-    PropTypes.oneOf(VALID_POSITIONS),
-    PropTypes.string,
-    PropTypes.object,
-  ]),
-  style: PropTypes.object,
-  settings: PropTypes.arrayOf(PropTypes.object),
-  state: PropTypes.object,
-  contextCb: PropTypes.func,
-  draggable: PropTypes.bool,
-  onDrag: PropTypes.func,
-  className: PropTypes.string,
-};
 
 export default ControlPanel;

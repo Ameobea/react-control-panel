@@ -1,9 +1,9 @@
 import React from 'react';
-import isnumeric from 'is-numeric';
 
 import { withSettingState } from './context';
 import { withErrorHandler, throwLogRangeError, validateStepParams } from '../error';
 import {
+  isNumeric,
   numericOrDefault,
   numericOrDefaultElse,
   createNormalDisplayOptsGetter,
@@ -15,8 +15,8 @@ import { EditableValue } from './EditableValue';
 import './styles/interval.css';
 
 const getLogDisplayOpts = withScalerFunctions(
-  ({ min, max, step, value, scaleValue, scaleValueInverse }) => {
-    // Scale the values down from their logarithmic represenations into the range used by the slider
+  ({ min, max, value, scaleValue, scaleValueInverse }) => {
+    // Scale the values down from their logarithmic representations into the range used by the slider
     const sliderVals = [
       scaleValueInverse(numericOrDefaultElse(value[0], () => min + (max - min) * 0.25)),
       scaleValueInverse(numericOrDefaultElse(value[1], () => min + (max - min) * 0.75)),
@@ -39,18 +39,15 @@ const getLogDisplayOpts = withScalerFunctions(
 );
 
 const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) => [
-  numericOrDefault(value[0], (min + max) * 0.25),
-  numericOrDefault(value[1], (min + max) * 0.75),
+  numericOrDefault(value[0], min + (max - min) * 0.25),
+  numericOrDefault(value[1], min + (max - min) * 0.75),
 ]);
 
-class Range extends React.Component {
+class Interval extends React.Component {
   input = React.createRef();
   state = {
     activeIndex: -1,
-    value: null,
-    min: null,
-    max: null,
-    step: null,
+    dragging: false,
     isEditingLeft: false,
     isEditingRight: false,
   };
@@ -76,37 +73,46 @@ class Range extends React.Component {
       activeIndex === 0
         ? [clampToExtremes ? this.props.min : -Infinity, oldValue[1]]
         : [oldValue[0], clampToExtremes ? this.props.max : Infinity];
-    oldValue[activeIndex] = clamp(newValue, clampTo[0], clampTo[1]);
-    this.props.onChange(oldValue);
+    const updated = [...oldValue];
+    updated[activeIndex] = clamp(newValue, clampTo[0], clampTo[1]);
+    this.props.onChange(updated);
+  };
+
+  handleMouseMove = evt => {
+    if (!this.state.dragging) {
+      return;
+    }
+
+    const { value, min, max, step, scaleValue } = this.computedScaleInfo;
+    const { fraction, hifrac, lofrac } = this.calculateFraction(evt, value, min, max);
+
+    // Clip against the other bound:
+    const clippedFraction =
+      this.state.activeIndex === 0 ? Math.min(hifrac, fraction) : Math.max(lofrac, fraction);
+
+    // Compute and quantize the new value:
+    const newValue = scaleValue(min + Math.round(((max - min) * clippedFraction) / step) * step);
+
+    this.setValue(value, newValue, this.state.activeIndex, true);
+  };
+
+  handleMouseUp = evt => {
+    if (!this.state.dragging) {
+      return;
+    }
+
+    this.handleMouseMove(evt);
+    this.setState({ dragging: false, activeIndex: -1 });
   };
 
   componentDidMount() {
-    const mouseHandlerWrapper = fn => evt => {
-      if (!this.state.dragging) {
-        return;
-      }
+    document.addEventListener('mousemove', this.handleMouseMove);
+    document.addEventListener('mouseup', this.handleMouseUp);
+  }
 
-      const { value, min, max, step, scaleValue } = this.computedScaleInfo;
-      const { fraction, hifrac, lofrac } = this.calculateFraction(evt, value, min, max);
-
-      // Clip against the other bound:
-      const clippedFraction =
-        this.state.activeIndex === 0 ? Math.min(hifrac, fraction) : Math.max(lofrac, fraction);
-
-      // Compute and quantize the new value:
-      const newValue = scaleValue(min + Math.round(((max - min) * clippedFraction) / step) * step);
-
-      this.setValue(value, newValue, this.state.activeIndex, true);
-
-      fn && fn();
-    };
-
-    // Install event listeners on the document for mouse movement and release
-    document.addEventListener('mousemove', mouseHandlerWrapper());
-    document.addEventListener(
-      'mouseup',
-      mouseHandlerWrapper(() => this.setState({ dragging: false, activeIndex: -1 }))
-    );
+  componentWillUnmount() {
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', this.handleMouseUp);
   }
 
   setIsEditingLeft = isEditingLeft => this.setState({ isEditingLeft });
@@ -127,7 +133,7 @@ class Range extends React.Component {
       value: logVal,
       min,
       max,
-      step: isnumeric(steps) ? (max - min) / steps : step,
+      step: isNumeric(steps) ? (max - min) / steps : step,
       scaleValue,
     };
 
@@ -138,9 +144,7 @@ class Range extends React.Component {
           style={{ backgroundColor: theme.background2 }}
           ref={this.input}
           onMouseDown={evt => {
-            this.setState({ dragging: true });
-
-            // Figure out which side is being clicked and adjust the active index accodingly
+            // Figure out which side is being clicked and adjust the active index accordingly
             const { fraction, hifrac, lofrac } = this.calculateFraction(evt, sliderVal, min, max);
 
             // This is just for making decisions, so perturb it ever so slightly just in case the
@@ -148,8 +152,7 @@ class Range extends React.Component {
             const lodiff = Math.abs(lofrac - Math.abs(max - min) * 1e-15 - fraction);
             const hidiff = Math.abs(hifrac + Math.abs(max - min) * 1e-15 - fraction);
 
-            // Determine which one is closer
-            this.setState({ activeIndex: lodiff < hidiff ? 0 : 1 });
+            this.setState({ dragging: true, activeIndex: lodiff < hidiff ? 0 : 1 });
           }}
         >
           <span
@@ -217,4 +220,4 @@ class Range extends React.Component {
   }
 }
 
-export default withErrorHandler(withSettingState()(Range));
+export default withErrorHandler(withSettingState()(Interval));

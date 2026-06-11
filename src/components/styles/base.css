@@ -11,7 +11,7 @@
 }
 
 .control-panel input {
-  font-family: 'Hack';
+  font-family: 'Hack', monospace;
   font-size: 11px;
 }
 
@@ -20,7 +20,7 @@
   text-decoration: none;
 }
 
-.container {
+.control-panel-container {
   position: relative;
   min-height: 25px;
 }

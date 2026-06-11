@@ -35,7 +35,7 @@ npm install react-control-panel
 The UI uses the Hack font which users may not have installed on their machines locally. To include a version dynamically, add the following line to your `<head>`:
 
 ```html
-<style type="text/css" rel="stylesheet"//cdn.jsdelivr.net/font-hack/2.019/css/hack.min.css></style>
+<link rel="stylesheet" href="//cdn.jsdelivr.net/font-hack/2.019/css/hack.min.css" />
 ```
 
 ## example
@@ -61,7 +61,7 @@ const initialState = {
   interval: [25, 50],
   text: 'my setting',
   checkbox: true,
-  'color rgb': 'rgb(100, 200, 100',
+  'color rgb': 'rgb(100, 200, 100)',
   'color hex': '#30b2ba',
   selection: 'option 1',
   'multiple checkboxes': [true, true],
@@ -139,7 +139,7 @@ It's also possible to use the old array-based definition system from the origina
 
 The `ControlPanel` component takes an array of children setting components that all receive part of the state. They each take additional props that can be used to configure their behavior. The `ControlPanel` itself takes a variety of props itself:
 
-- `initialState` is an object mapping label to initial value for each of the settings for the control panel. It is required, and a value should be supplied for each of the settings components.
+- `initialState` is an object mapping label to initial value for each of the settings for the control panel. It is required, and a value should be supplied for each of the settings components. If a setting defined via the `settings` prop also provides an `initial` value, the value from `initialState` takes precedence.
 - `onChange` accepts a callback that has the following signature: `(label, newValue, state)` where `state` is the full state object for the entire panel. The supplied function will be called every time that any of the settings are updated.
 - `theme` can specify `light` • `dark` or provide an object (see [`themes.js`](themes.js) for format)
 - `title` a title to add to the top of the panel
@@ -156,7 +156,7 @@ Each child setting component must be one of `Range` • `Input` • `Checkbox` �
 Some setting components have additional properties:
 
 - Inputs of type `range` can specify a `min`, `max`, and `step` (or integer `steps`). Scale can be either `'linear'` (default) or `'log'`. If a log scale, the sign of `min`, `max`, and `initial` must be the same and only `steps` is permitted (since the step size is not constant on a log scale).
-- Inputs of type `color` can specify a `format` as either `rgb` • `hex` • `array`
+- Inputs of type `color` can specify a `format` as either `rgb` • `hex` • `array`. The `array` format reads and produces `[r, g, b]` arrays of floats normalized to `[0, 1]`.
 - Inputs of type `button` can specify `action` (onclick), a `disabled` flag, `onmousedown`, and `onmouseup` callbacks. Button inputs are not reflected in the state and do not trigger an `'input'` event.
 - Inputs of type `interval` obey the same semantics as `range` inputs, except the input and output is a two-element array corresponding to the low/high bounds, e.g. `initial: [1, 7.5]`.
 - Inputs of type `select` can specify a list of options, either as an `Array` (in which case the value is the same as the option text) or as an object containing key/value pairs (in which case the key/value pair maps to value value/label pairs).
@@ -206,13 +206,11 @@ const handleContext = ctx => {
   ctx['my range'] = 10; // this sets the value of the 'my range' setting to 10 in the panel
   ctx['multibox'][1] = false; // this doesn't work; you can only set top-level setting values
   ctx['multibox'] = [true, false, true]; // do this instead
-  console.log(Object.entries(ctx)); // this works, even with the polyfill
+  console.log(Object.entries(ctx));
 };
 
 <ControlPanel contextCb={handleContext}>...</ControlPanel>;
 ```
-
-In browsers that don't support the ES6 `Proxy` API, a shallow polyfill is used which allows values to be get, set, and listed which should be enough for most applications.
 
 Please note that you cannot use external state if you are supplying a panel context callback.
 

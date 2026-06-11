@@ -1,7 +1,4 @@
-import React, { useMemo, useCallback, useRef, useState } from 'react';
-import { ClientStyle as Style } from 'react-css-component';
-import isnumeric from 'is-numeric';
-import { v4 as uuid } from 'uuid';
+import React, { useCallback, useState } from 'react';
 
 import { withSettingState } from './context';
 import Value from './value';
@@ -9,11 +6,28 @@ import { EditableValue } from './EditableValue';
 import getDynamicCss from './styles/range';
 import { withErrorHandler, throwLogRangeError, validateStepParams } from '../error';
 import {
+  isNumeric,
   withScalerFunctions,
   numericOrDefault,
   numericOrDefaultElse,
   createNormalDisplayOptsGetter,
 } from '../util';
+
+// Range styling depends only on two theme colors, so style nodes are injected once per distinct
+// theme and shared by all instances rather than once per mounted component.
+const injectedRangeThemes = new Map();
+const getRangeClassName = theme => {
+  const key = `${theme.background2}|${theme.foreground1}`;
+  let className = injectedRangeThemes.get(key);
+  if (!className) {
+    className = `control-panel-range-${injectedRangeThemes.size}`;
+    const styleTag = document.createElement('style');
+    styleTag.textContent = getDynamicCss(theme, className);
+    document.head.appendChild(styleTag);
+    injectedRangeThemes.set(key, className);
+  }
+  return className;
+};
 
 const getLogDisplayOpts = withScalerFunctions(
   ({ min, max, value, scaleValue, scaleValueInverse }) => {
@@ -35,16 +49,14 @@ const getNormalDisplayOpts = createNormalDisplayOptsGetter((min, max, value) =>
 );
 
 export const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
-  const id = useRef(uuid());
-  const css = useMemo(() => getDynamicCss(theme, id.current), [theme]);
   validateStepParams(props.step, steps);
-  const [isEditing, setIsEditing] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const { min, max, step, logVal, sliderVal, scaleValue } = (
     scale === 'log' ? getLogDisplayOpts : getNormalDisplayOpts
   )(props);
   // use `steps` if provided
-  const processedStep = isnumeric(steps) ? (max - min) / steps : step;
+  const processedStep = isNumeric(steps) ? (max - min) / steps : step;
   const handleChange = useCallback(
     e => {
       // We take the value from the slider (range 1 to 100) and scale it into its logarithmic
@@ -56,9 +68,8 @@ export const InnerRange = ({ scale, steps, onChange, theme, ...props }) => {
 
   return (
     <>
-      <Style css={css} />
       <input
-        className={`control-panel-range-${id.current}`}
+        className={getRangeClassName(theme)}
         type='range'
         value={sliderVal}
         min={min}

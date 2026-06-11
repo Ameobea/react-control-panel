@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { withTheme, Container } from './context';
 
@@ -37,7 +36,7 @@ const getStyle = (theme, { focused, active, hover, disabled }) => {
   };
 };
 
-const UnwrappedButton = ({ theme, action, label, disabled }) => {
+const UnwrappedButton = ({ theme, action, label, disabled, onmousedown, onmouseup }) => {
   const [focused, setFocused] = React.useState(false);
   const [hover, setHover] = React.useState(false);
   const [active, setActive] = React.useState(false);
@@ -58,15 +57,11 @@ const UnwrappedButton = ({ theme, action, label, disabled }) => {
         onMouseLeave={() => setHover(false)}
         onMouseDown={() => {
           setActive(true);
-          if (onmousedown) {
-            onmousedown();
-          }
+          onmousedown?.();
         }}
         onMouseUp={() => {
           setActive(false);
-          if (onmouseup) {
-            onmouseup();
-          }
+          onmouseup?.();
         }}
       >
         {label}
@@ -75,13 +70,4 @@ const UnwrappedButton = ({ theme, action, label, disabled }) => {
   );
 };
 
-const Button = withTheme(UnwrappedButton);
-Button.propTypes = {
-  action: PropTypes.func,
-  disabled: PropTypes.bool,
-  onmousedown: PropTypes.func,
-  onmouseup: PropTypes.func,
-  label: PropTypes.string.isRequired,
-};
-
-export default Button;
+export default withTheme(UnwrappedButton);

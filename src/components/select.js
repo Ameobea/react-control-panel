@@ -4,14 +4,14 @@ import { withSettingState } from './context';
 
 const getOptions = options => {
   const keyVals = Array.isArray(options) ? options.map(opt => [opt, opt]) : Object.entries(options);
-  return keyVals.map(([val, key]) => (
-    <option key={key} value={key}>
-      {val}
+  return keyVals.map(([label, optionValue]) => (
+    <option key={optionValue} value={optionValue}>
+      {label}
     </option>
   ));
 };
 
-const Select = ({ options, theme, value, onChange, styles }) => {
+const Select = ({ options, value, onChange, styles }) => {
   const selectRef = React.useRef(null);
   // Blur the select when the value changes to prevent keypresses from being
   // interpreted as changing the value.
@@ -21,7 +21,7 @@ const Select = ({ options, theme, value, onChange, styles }) => {
 
   return (
     <>
-      <span style={styles.traingleUp} />
+      <span style={styles.triangleUp} />
       <span style={styles.triangleDown} />
       <select
         value={value}
@@ -39,7 +39,6 @@ const mapPropsToStyles = ({ theme }) => {
   const triangle = {
     borderRight: '3px solid transparent',
     borderLeft: '3px solid transparent',
-    lineHeight: 20,
     position: 'absolute',
     right: '2.5%',
     zIndex: 1,
@@ -48,7 +47,6 @@ const mapPropsToStyles = ({ theme }) => {
 
   return {
     select: {
-      display: 'inlineBlock',
       position: 'absolute',
       width: '62%',
       paddingLeft: '1.5%',
@@ -56,14 +54,14 @@ const mapPropsToStyles = ({ theme }) => {
       border: 'none',
       borderRadius: 0,
       outline: 'none',
+      appearance: 'none',
       WebkitAppearance: 'none',
       MozAppearance: 'none',
-      OAppearance: 'none',
       fontFamily: 'inherit',
       backgroundColor: theme.background2,
       color: theme.text2,
     },
-    traingleUp: {
+    triangleUp: {
       ...triangle,
       top: 11,
       borderTop: `5px solid ${theme.text2}`,

@@ -3,6 +3,8 @@ demo
 images
 .babelrc
 .eslintrc
+eslint.config.mjs
+.prettierrc
 webpack.*
 yarn.lock
 yarn-error.log

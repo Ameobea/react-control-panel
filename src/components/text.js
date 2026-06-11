@@ -11,7 +11,7 @@ class Text extends React.Component {
       onFocus={() => this.setState({ focused: true })}
       onBlur={() => this.setState({ focused: false })}
       type="text"
-      value={this.props.value}
+      value={this.props.value ?? ''}
       onChange={e => this.props.onChange(e.target.value)}
     />
   );

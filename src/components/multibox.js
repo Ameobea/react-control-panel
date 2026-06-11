@@ -1,29 +1,27 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { withSettingState } from './context';
 
 const UnwrappedMultibox = ({ names = [], count = 2, value, onChange, styles }) => {
-  const HydratedCheckbox = (checked, i) => (
-    <React.Fragment key={i}>
-      <span
-        style={styles.getContentStyle(i, checked)}
-        onClick={() => {
-          // dirty mutation below
-          value[i] = !checked;
-          onChange(value);
-        }}
-      />
-      <input type='checkbox' defaultChecked={checked} style={styles.checkbox} />
-      {names[i] ? <span style={styles.label}>{names[i]}</span> : null}
-    </React.Fragment>
-  );
-
-  const checkboxValues = value || new Array(count).map((_v, i) => value[i] || false);
+  const checkboxValues = value || new Array(count).fill(false);
 
   return (
     <div style={styles.main}>
-      <span style={styles.innerWrapper}>{checkboxValues.map(HydratedCheckbox)}</span>
+      <span style={styles.innerWrapper}>
+        {checkboxValues.map((checked, i) => (
+          <React.Fragment key={i}>
+            <span
+              style={styles.getContentStyle(i, checked)}
+              onClick={() => {
+                const newValue = [...checkboxValues];
+                newValue[i] = !checked;
+                onChange(newValue);
+              }}
+            />
+            {names[i] ? <span style={styles.label}>{names[i]}</span> : null}
+          </React.Fragment>
+        ))}
+      </span>
     </div>
   );
 };
@@ -36,10 +34,6 @@ const mapPropsToStyles = ({ theme, colors = [] }) => ({
     paddingBottom: 7,
   },
   innerWrapper: { display: 'inline-block' },
-  checkbox: {
-    display: 'none',
-    cursor: 'pointer',
-  },
   label: {
     backgroundColor: theme.background2,
     paddingRight: 7,
@@ -74,11 +68,4 @@ const mapPropsToStyles = ({ theme, colors = [] }) => ({
   },
 });
 
-const Multibox = withSettingState(mapPropsToStyles)(UnwrappedMultibox);
-Multibox.propTypes = {
-  colors: PropTypes.array,
-  names: PropTypes.arrayOf(PropTypes.string),
-  count: PropTypes.number,
-};
-
-export default Multibox;
+export default withSettingState(mapPropsToStyles)(UnwrappedMultibox);

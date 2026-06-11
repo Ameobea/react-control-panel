@@ -12,7 +12,7 @@ export default withTheme(({ title, theme }) => {
   };
 
   return (
-    <div style={style} className="draggable">
+    <div style={style} className="control-panel-draggable">
       {title}
     </div>
   );

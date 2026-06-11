@@ -1,4 +1,3 @@
-import babel from 'eslint-plugin-babel';
 import react from 'eslint-plugin-react';
 import globals from 'globals';
 import babelParser from '@babel/eslint-parser';
@@ -19,7 +18,6 @@ export default [
   ...compat.extends('eslint:recommended', 'plugin:react/recommended'),
   {
     plugins: {
-      babel,
       react,
     },
 
@@ -32,7 +30,7 @@ export default [
       },
 
       parser: babelParser,
-      ecmaVersion: 2017,
+      ecmaVersion: 2022,
       sourceType: 'module',
 
       parserOptions: {
@@ -46,7 +44,7 @@ export default [
     settings: {
       react: {
         pragma: 'React',
-        version: '16.5',
+        version: '18',
       },
     },
 

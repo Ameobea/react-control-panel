@@ -9,6 +9,7 @@ const arrayToRgb = arr => {
   return `rgb(${r},${g},${b})`;
 };
 
+// `picker.getRGB()` returns channels normalized to [0, 1]
 const colorFormatters = {
   rgb: colorPicker => {
     const { r, g, b } = colorPicker.getRGB();
@@ -17,11 +18,11 @@ const colorFormatters = {
   hex: colorPicker => colorPicker.getHexString(),
   array: colorPicker => {
     const { r, g, b } = colorPicker.getRGB();
-    return [r, g, b].map(x => (x / 255).toFixed(2));
+    return [r, g, b].map(x => Math.round(x * 100) / 100);
   },
 };
 
-// Normalizes all input color strings to hex number
+// Normalizes all input color formats to a hex number
 const colorParsers = {
   rgb: color => {
     const [r, g, b] = color
@@ -45,7 +46,11 @@ class Color extends React.Component {
 
   lastColor = null;
 
-  formatColor = () => colorFormatters[this.props.format](this.picker);
+  get format() {
+    return this.props.format || 'hex';
+  }
+
+  formatColor = () => colorFormatters[this.format](this.picker);
 
   componentDidMount() {
     this.picker = new SimpleColorPicker({
@@ -67,9 +72,13 @@ class Color extends React.Component {
 
   componentDidUpdate() {
     if (this.picker && this.props.value !== this.lastColor) {
-      const parsedColor = colorParsers[this.props.format](this.props.value);
+      const parsedColor = colorParsers[this.format](this.props.value);
       this.picker.setColor(parsedColor);
     }
+  }
+
+  componentWillUnmount() {
+    this.picker?.remove();
   }
 
   getStyles = () => ({
@@ -78,18 +87,16 @@ class Color extends React.Component {
       display: 'inline-block',
       width: '12.5%',
       height: 20,
-      backgroundColor:
-        this.props.format === 'array' ? arrayToRgb(this.props.value) : this.props.value,
+      backgroundColor: this.format === 'array' ? arrayToRgb(this.props.value) : this.props.value,
     },
     picker: {
       position: 'absolute',
       top: '20%',
       paddingTop: 20,
       left: '38%',
-      bottom: '20%',
       right: '10%',
       height: 100,
-      width: 100,
+      width: 125,
       zIndex: 8,
       display: this.state.colorHovered || this.state.pickerHovered ? undefined : 'none',
       cursor: 'default',
@@ -112,7 +119,12 @@ class Color extends React.Component {
           onMouseEnter={() => this.setState({ pickerHovered: true })}
           onMouseLeave={() => this.setState({ pickerHovered: false })}
         />
-        <Value text={this.props.value} width='46%' />
+        <Value
+          text={
+            Array.isArray(this.props.value) ? this.props.value.join(', ') : this.props.value
+          }
+          width='46%'
+        />
       </>
     );
   };

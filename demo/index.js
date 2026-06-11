@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import ControlPanel, {
   Text,
@@ -40,7 +40,7 @@ const initialState = {
   interval: [25, 50],
   text: 'my setting',
   checkbox: true,
-  'color rgb': 'rgb(100, 200, 100',
+  'color rgb': 'rgb(100, 200, 100)',
   'color hex': '#30b2ba',
   selection: 'option 1',
   'multiple checkboxes': [true, true],
@@ -146,5 +146,4 @@ class App extends React.Component {
   );
 }
 
-const root = document.getElementById('root');
-ReactDOM.render(<App />, root);
+createRoot(document.getElementById('root')).render(<App />);

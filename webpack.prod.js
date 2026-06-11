@@ -22,6 +22,7 @@ module.exports = {
   output: {
     library: 'react-control-panel',
     libraryTarget: 'umd',
+    globalObject: 'this',
     path: __dirname + '/dist',
     filename: 'index.js',
   },
